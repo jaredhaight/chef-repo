@@ -1,0 +1,24 @@
+server {
+    listen       80;
+    server_name  localhost;
+
+    location / {
+        uwsgi_pass   unix:///tmp/uwsgi.sock;
+        include        uwsgi_params;
+        uwsgi_param             HTTP_X_FORWARDED_PROTOCOL $scheme;
+        uwsgi_param             UWSGI_SCHEME   $scheme;
+
+    }
+
+    location /static {
+	alias <%= @static_files_dir %>;
+    }
+
+    location /media {
+        alias <%= @media_files_dir %>;
+    }
+
+    client_max_body_size 32m;
+    client_body_buffer_size 500k;
+
+}
