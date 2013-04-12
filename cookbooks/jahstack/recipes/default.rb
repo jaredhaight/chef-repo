@@ -107,9 +107,15 @@ python_pip "django" do
   action :install
 end
 
+python_pip "psycopg2" do
+  virtualenv node["jahstack"]["python_venv_dir"]
+  action :install
+end
+
 python_pip "uwsgi" do
   action :install
 end
+
 
 service "uwsgi" do
     service_name "uwsgi"
