@@ -5,6 +5,6 @@ chmod-socket = 666
 processes = 4
 master = true
 chdir = <%= @uwsgi_home %>
-module = main.wsgi
+module = <%= @uwsgi_module %>
 daemonize=<%= @log_dir %>/uwsgi.log
 home = <%= @virtualenv %>

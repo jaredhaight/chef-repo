@@ -75,6 +75,7 @@ template "#{node[:jahstack][:etc]}/uwsgi.ini" do
     variables(
         :log_dir		=> node["jahstack"]["log_dir"],
         :uwsgi_home		=> node["jahstack"]["django_app_home"],
+	:uwsgi_module		=> node["jahstack"]["uwsgi_module_location"],
         :virtualenv		=> node["jahstack"]["python_venv_dir"])
 end
 
