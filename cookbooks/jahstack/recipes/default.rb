@@ -23,7 +23,7 @@ end
 directory node["nginx"]["static_files_dir"] do
     owner "www-data"
     group "www-data"
-    mode "0755"
+    mode "0777"
     action :create
     recursive true
 end
@@ -32,7 +32,7 @@ end
 directory node["nginx"]["media_files_dir"] do
     owner "www-data"
     group "www-data"
-    mode "0755"
+    mode "0777"
     action :create
     recursive true
 end
@@ -89,6 +89,7 @@ template "#{node[:jahstack][:etc]}/uwsgi.ini" do
         :uwsgi_home		=> node["jahstack"]["django_home"],
 	:uwsgi_module		=> node["jahstack"]["uwsgi_module_location"],
         :virtualenv		=> node["jahstack"]["python_venv_dir"])
+    action :nothing
 end
 
 template "/etc/init/uwsgi.conf" do
@@ -98,6 +99,13 @@ template "/etc/init/uwsgi.conf" do
     mode "0644"
     variables(
         :etc_dir                     => node["jahstack"]["etc"])
+    action :nothing
+    notifies :create, "template[#{node[:jahstack][:etc]}/uwsgi.ini]"
+end
+
+python_pip "uwsgi" do
+  action :install
+  notifies :create, "template[/etc/init/uwsgi.conf]"
 end
 
 template "#{node[:jahstack][:django_app_home]}/settings.py" do
@@ -105,11 +113,13 @@ template "#{node[:jahstack][:django_app_home]}/settings.py" do
     owner node["jahstack"]["run_user"]
     group node["jahstack"]["run_group"]
     variables(
-	:django_static_dir	=> node["jahstack"]["django_static_dir"],
+	:django_static_files_dir	=> node["jahstack"]["django_static_dir"],
         :django_secret_key      => node["jahstack"]["django_secret_key"],
 	:postgresql_database	=> node["jahstack"]["postgresql_database"],
 	:postgresql_user	=> node["jahstack"]["postgresql_user"],
-	:postgresql_password	=> node["jahstack"]["postgresql_password"])
+	:postgresql_password	=> node["jahstack"]["postgresql_password"],
+        :django_app_name        => node["jahstack"]["django_app_name"],
+	:nginx_static_files_dir	=> node["nginx"]["static_files_dir"])
     action :nothing
 end
 
@@ -124,6 +134,7 @@ end
 python_virtualenv node["jahstack"]["python_venv_dir"] do
     owner node["jahstack"]["run_user"]
     group node["jahstack"]["run_group"]
+    options "--use-distribute"
     action :create
     notifies :run, "execute[install_requirements]"
 end
@@ -132,14 +143,32 @@ service "uwsgi" do
     service_name "uwsgi"
     provider Chef::Provider::Service::Upstart
     supports :restart => true, :start => true, :stop => true
-    action [:enable, :start]
+    action :nothing
 end
 
 execute "install_requirements" do
     cwd node["jahstack"]["django_home"]
-    user "jared"
+    user node["jahstack"]["run_user"]
     command "#{node[:jahstack][:python_venv_dir]}/bin/pip install -r #{node[:jahstack][:django_home]}/requirements.txt"
     action :nothing
+    notifies :run, "execute[django_sync]"
+end
+
+execute "django_sync" do
+    cwd node["jahstack"]["django_home"]
+    user node["jahstack"]["run_user"]
+    command "#{node[:jahstack][:python_venv_dir]}/bin/python #{node[:jahstack][:django_home]}/manage.py syncdb --noinput"
+    action :nothing
+    notifies :run, "execute[django_collectstatic]"
+end
+
+execute "django_collectstatic" do
+    cwd node["jahstack"]["django_home"]
+    user node["jahstack"]["run_user"]
+    command "#{node[:jahstack][:python_venv_dir]}/bin/python #{node[:jahstack][:django_home]}/manage.py collectstatic --noinput"
+    action :nothing
+    notifies :enable, "service[uwsgi]"
+    notifies :start, "service[uwsgi]"
 end
 
 git node["jahstack"]["django_home"] do
