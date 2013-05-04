@@ -110,6 +110,7 @@ template "#{node[:jahstack][:django_app_home]}/settings.py" do
 	:postgresql_database	=> node["jahstack"]["postgresql_database"],
 	:postgresql_user	=> node["jahstack"]["postgresql_user"],
 	:postgresql_password	=> node["jahstack"]["postgresql_password"])
+    action :nothing
 end
 
 directory node["jahstack"]["python_venv_dir"] do
@@ -124,6 +125,7 @@ python_virtualenv node["jahstack"]["python_venv_dir"] do
     owner node["jahstack"]["run_user"]
     group node["jahstack"]["run_group"]
     action :create
+    notifies :run, "execute[install_requirements]"
 end
 
 python_pip "django" do
@@ -147,14 +149,22 @@ service "uwsgi" do
     action [:enable, :start]
 end
 
+execute "install_requirements" do
+    cwd node["jahstack"]["django_app_home"]
+    user "jared"
+    command "#{node[:jahstack][:python_venv_dir]}/pip install -r #{node[:jahstack][:django_app_home]}/requirements.txt"
+    action :nothing
+end
+
 git node["jahstack"]["django_app_home"] do
   repository "git://github.com/photosandtext/todo_site.git"
   reference "master"
-  action :sync
+  action :checkout
+  notifies :run, "template[#{node[:jahstack][:django_app_home]}/settings.py]"
 end
 
 postgresql_database node["jahstack"]["postgresql_database"] do
-  connection ({:host => "127.0.0.1", :port => 5432, :username => 'postgres', :password => node['postgresql']['password']['postgres']})
+  connection ({:host => "127.0.0.1", :port => 5432, :username => 'postgres', :password => node['jahstack']['postgresql_password']})
   action :create
 end
 
