@@ -43,6 +43,9 @@ template "#{node[:nginx][:dir]}/sites-available/default" do
     group "root"
     mode "0644"
     variables(
+	:frontend_url		=> node['jahstack']['frontend_url'],
+	:backend_url		=> node['jahstack']['backend_url'],
+	:www_home		=> node['jahstack']['www_home'],
         :static_files_dir        => node["nginx"]["static_files_dir"],
         :media_files_dir         => node["nginx"]["media_files_dir"])
 end
@@ -172,10 +175,16 @@ execute "django_collectstatic" do
 end
 
 git node["jahstack"]["django_home"] do
-  repository "git://github.com/photosandtext/todo_site.git"
+  repository "git://github.com/photosandtext/todo_backend.git"
   reference "master"
   action :checkout
   notifies :create, "template[#{node[:jahstack][:django_app_home]}/settings.py]"
+end
+
+git node["jahstack"]["www_home"] do
+  repository "git://github.com/photosandtext/todo_frontend.git"
+  reference "master"
+  action :checkout
 end
 
 postgresql_database node["jahstack"]["postgresql_database"] do

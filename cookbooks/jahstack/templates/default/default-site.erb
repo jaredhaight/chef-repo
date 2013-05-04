@@ -1,9 +1,19 @@
 #THIS FILE IS MANAGED BY CHEF. MANUAL CHANGES WILL BE OVERWRITTEN
 server {
-    listen       80;
-    server_name  localhost;
+    listen	80;
+    server_name <%= @frontend_url %>;
 
-    location / {
+    location {
+	root <%= www_home %>;
+	index index.html;
+    }
+}
+
+server {
+    listen       80;
+    server_name  <%= @backend_url %>;
+
+    location  {
         uwsgi_pass   unix:///tmp/uwsgi.sock;
         include        uwsgi_params;
         uwsgi_param             HTTP_X_FORWARDED_PROTOCOL $scheme;
