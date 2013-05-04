@@ -160,7 +160,7 @@ git node["jahstack"]["django_app_home"] do
   repository "git://github.com/photosandtext/todo_site.git"
   reference "master"
   action :checkout
-  notifies :run, "template[#{node[:jahstack][:django_app_home]}/settings.py]"
+  notifies :create, "template[#{node[:jahstack][:django_app_home]}/settings.py]"
 end
 
 postgresql_database node["jahstack"]["postgresql_database"] do
