@@ -71,7 +71,7 @@ directory node["jahstack"]["etc"] do
     recursive true
 end
 
-directory node["jahstack"]["django_app_home"] do
+directory node["jahstack"]["django_home"] do
     owner node["jahstack"]["run_user"]
     group node["jahstack"]["run_group"]
     mode "0755"
@@ -86,7 +86,7 @@ template "#{node[:jahstack][:etc]}/uwsgi.ini" do
     mode "0644"
     variables(
         :log_dir		=> node["jahstack"]["log_dir"],
-        :uwsgi_home		=> node["jahstack"]["django_app_home"],
+        :uwsgi_home		=> node["jahstack"]["django_home"],
 	:uwsgi_module		=> node["jahstack"]["uwsgi_module_location"],
         :virtualenv		=> node["jahstack"]["python_venv_dir"])
 end
@@ -150,13 +150,13 @@ service "uwsgi" do
 end
 
 execute "install_requirements" do
-    cwd node["jahstack"]["django_app_home"]
+    cwd node["jahstack"]["django_home"]
     user "jared"
-    command "#{node[:jahstack][:python_venv_dir]}/pip install -r #{node[:jahstack][:django_app_home]}/requirements.txt"
+    command "#{node[:jahstack][:python_venv_dir]}/pip install -r #{node[:jahstack][:django_home]}/requirements.txt"
     action :nothing
 end
 
-git node["jahstack"]["django_app_home"] do
+git node["jahstack"]["django_home"] do
   repository "git://github.com/photosandtext/todo_site.git"
   reference "master"
   action :checkout
