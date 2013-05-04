@@ -11,6 +11,10 @@ include_recipe "python"
 include_recipe "python::pip"
 include_recipe "python::virtualenv"
 include_recipe "git"
+include_recipe "openssl"
+include_recipe "postgresql::server"
+include_recipe "postgresql::client"
+include_recipe "database::postgresql"
 
 file "/etc/chef/ohai_plugins/README" do
     action :delete
@@ -88,6 +92,18 @@ template "/etc/init/uwsgi.conf" do
         :etc_dir                     => node["jahstack"]["etc"])
 end
 
+template "#{node[:jahstack][:django_app_home]}/settings.py" do
+    source "settings.py.erb"
+    owner node["jahstack"]["run_user"]
+    group node["jahstack"]["run_group"]
+    variables(
+	:django_static_dir	=> node["jahstack"]["django_static_dir"],
+        :django_secret_key      => node["jahstack"]["django_secret_key"],
+	:postgresql_database	=> node["jahstack"]["postgresql_database"],
+	:postgresql_user	=> node["jahstack"]["postgresql_user"],
+	:postgresql_password	=> node["jahstack"]["postgresql_password"])
+end
+
 directory node["jahstack"]["python_venv_dir"] do
     owner node["jahstack"]["run_user"]
     group node["jahstack"]["run_group"]
@@ -116,10 +132,21 @@ python_pip "uwsgi" do
   action :install
 end
 
-
 service "uwsgi" do
     service_name "uwsgi"
     provider Chef::Provider::Service::Upstart
     supports :restart => true, :start => true, :stop => true
     action [:enable, :start]
 end
+
+git node["jahstack"]["django_app_home"] do
+  repository "git://github.com/photosandtext/todo_site.git"
+  reference "master"
+  action :sync
+end
+
+postgresql_database node["jahstack"]["postgresql_database"] do
+  connection ({:host => "127.0.0.1", :port => 5432, :username => 'postgres', :password => node['postgresql']['password']['postgres']})
+  action :create
+end
+
