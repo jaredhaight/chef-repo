@@ -4,7 +4,7 @@ server {
     server_name <%= @frontend_url %>;
 
     location {
-	root <%= www_home %>;
+	root <%= @www_home %>;
 	index index.html;
     }
 }
