@@ -3,13 +3,10 @@ Learning Chef. The goal is to build a recipe that installs Nginx, Django and Pos
 Currently working:
 ==================
 * Install and configure Nginx
+* Install and configure Postgres
+* Create database for use with Django
 * Setup virtualenv
-* Install django, uwsgi
+* Checkout repo from Github (Currently set for todo_site)
+* Install python dependencies from requirements.txt
 * Setup uwsgi service
-
-
-Needs work
-==========
-* Install and configure Postgress
-* Download Photos and Text from Github
-* Probably some other stuff too.
+* Setup Django
