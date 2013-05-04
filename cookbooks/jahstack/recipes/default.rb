@@ -71,6 +71,14 @@ directory node["jahstack"]["etc"] do
     recursive true
 end
 
+directory node["jahstack"]["django_app_home"] do
+    owner node["jahstack"]["run_user"]
+    group node["jahstack"]["run_group"]
+    mode "0755"
+    action :create
+    recursive true
+end
+
 template "#{node[:jahstack][:etc]}/uwsgi.ini" do
     source "uwsgi.ini.erb"
     owner node["jahstack"]["run_user"]
