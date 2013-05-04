@@ -128,20 +128,6 @@ python_virtualenv node["jahstack"]["python_venv_dir"] do
     notifies :run, "execute[install_requirements]"
 end
 
-python_pip "django" do
-  virtualenv node["jahstack"]["python_venv_dir"] 
-  action :install
-end
-
-python_pip "psycopg2" do
-  virtualenv node["jahstack"]["python_venv_dir"]
-  action :install
-end
-
-python_pip "uwsgi" do
-  action :install
-end
-
 service "uwsgi" do
     service_name "uwsgi"
     provider Chef::Provider::Service::Upstart
@@ -152,7 +138,7 @@ end
 execute "install_requirements" do
     cwd node["jahstack"]["django_home"]
     user "jared"
-    command "#{node[:jahstack][:python_venv_dir]}/pip install -r #{node[:jahstack][:django_home]}/requirements.txt"
+    command "#{node[:jahstack][:python_venv_dir]}/bin/pip install -r #{node[:jahstack][:django_home]}/requirements.txt"
     action :nothing
 end
 
