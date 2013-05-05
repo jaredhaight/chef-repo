@@ -22,7 +22,7 @@ REST_FRAMEWORK = {
     )
 }
 
-CORS_ORIGIN_WHITELIST = ('localhost','127.0.0.1:8001', '127.0.0.1:8000', '127.0.0.1')
+CORS_ORIGIN_WHITELIST = ('localhost','127.0.0.1:8001', '127.0.0.1:8000', '127.0.0.1', '<%= @frontend_url %>')
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.

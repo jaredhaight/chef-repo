@@ -118,6 +118,7 @@ template "#{node[:jahstack][:django_app_home]}/settings.py" do
     variables(
 	:django_static_files_dir	=> node["jahstack"]["django_static_dir"],
         :django_secret_key      => node["jahstack"]["django_secret_key"],
+	:frontend_url           => node['jahstack']['frontend_url'],
 	:postgresql_database	=> node["jahstack"]["postgresql_database"],
 	:postgresql_user	=> node["jahstack"]["postgresql_user"],
 	:postgresql_password	=> node["jahstack"]["postgresql_password"],
